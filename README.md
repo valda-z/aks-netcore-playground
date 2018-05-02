@@ -32,6 +32,64 @@ There is sample output:
 
 ```
 
+## Experiments
+
+### Deploy Replica Set and Service
+
+#### create dockercloud replicaset and service
+
+##### dp-rs.yaml
+```yaml
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: dockercloud
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: dockercloud
+    spec:
+      containers:
+        - name: hostname
+          image: dockercloud/hello-world
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+```
+
+##### dp-svc.yaml
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dockercloud
+  name: dockercloud
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+    name: http
+  selector:
+    app: dockercloud
+  type: LoadBalancer
+```
+
+##### run commands ..
+
+`kubectl create -f dp-rs.yaml`
+`kubectl create -f dp-svc.yaml`
+
+Or you can use kubernetes control plane for creating replicaset and service
+
+##### wait for provisioning
+kubectl get svc
+
+
 
  
 
