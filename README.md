@@ -13,7 +13,7 @@ This demo contains helm templates and description of k8s use-cases which can be 
 * run Azure Cloud Shell
 * ![img1.png](img/img1.png "")
 * There run install script and provide necessary parameters
-* `curl -s https://raw.githubusercontent.com/valda-z/acs-cicd/master/run.sh | bash -s -- --resource-group KUBE --kubernetes-name valdakube --acr-name valdakubeacr --postgresql-name valdakubepostgres --jenkins-password kube123`
+* `curl -s https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/run.sh | bash -s -- --resource-group KUBE --kubernetes-name valdakube `
 * supported parameters are:
  * Mandatory
      * `--resource-group` - Azure resource group name (will be created by script)
