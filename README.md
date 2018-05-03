@@ -34,9 +34,12 @@ There is sample output:
 
 ## Experiments
 
-### Deploy Replica Set and Service
+### #1 Deploy Replica Set and Service
 
 #### create dockercloud replicaset and service
+
+Create and validate replica set with simple http service and then create service with external load balancer and public IP address.
+ReplicaSet and Service can be created by scripts or directly from Kubernetes control plane.
 
 ##### dp-rs.yaml
 ```yaml
@@ -82,13 +85,32 @@ spec:
 ##### run commands ..
 
 `kubectl create -f dp-rs.yaml`
+
 `kubectl create -f dp-svc.yaml`
 
 Or you can use kubernetes control plane for creating replicaset and service
 
-##### wait for provisioning
-kubectl get svc
+##### wait for provisioning of services
 
+You can check status of provisioning by running command (or you can use kubernetes control plane for it):
+
+`kubectl get svc`
+
+### #2 Create ASP.NET Core Web Application in Linux Docker
+
+#### Create new project
+* Use new project, select type "ASP.NET Core Web Application"
+* In project detail page select "ASP.NET Core 2.0" and project type "API"
+* Open Controller in your project and change Get method to return some environment variable:
+
+```cs
+[HttpGet("{id}")]
+public string Get(int id)
+{
+    return Environment.GetEnvironmentVariable("MYTESTENVIRONMENT");
+}
+```
+* build and test project
 
 
  
