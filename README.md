@@ -24,7 +24,7 @@ This demo contains helm templates and description of k8s use-cases which can be 
 ### After successful deployment:
 * deployment script will show necessary information how to access our micro-service application
 
-There is sample output:
+There is sample output - please store DNS name for service [APP DNS NAME]:
 
 ```
 ### DONE
@@ -110,7 +110,59 @@ public string Get(int id)
     return Environment.GetEnvironmentVariable("MYTESTENVIRONMENT");
 }
 ```
-* build and test project
+* Insight your Controller create method to handle default path "/" - kubernetes will use this entrypoint for health probe.
+
+```cs
+[HttpGet]
+[Route("/")]
+public string Probe()
+{
+    return "OK";
+}
+```
+
+* build and test project (also you can test setting environment variable `MYTESTENVIRONMENT` for project
+
+#### Enable docker support for project
+* Select "Docker support" from "Project" menu
+* Select type "Linux"
+* Visual Studio will create for you dockerfile and now you can build and debug your application in running docker (select right target for debug).
+
+#### Publish docker image to Azure Container Registry
+
+##### Visual Studio 2017
+* Select "Publish" option on project
+* Create new publishing profile for Container Registry and select your existing Azure Container Registry in your subscription
+* Publish image
+
+
+##### Alternative process from command line
+* Create tag on your docker image, first of all list images by `docker images` and than `docker tag [YOUR APP IMAGE] [YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]`
+* login to container registry `docker login [YOUR REGISTRY NAME].azurecr.io -u xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -p myPassword` - credentials for registry are visible in Azure Portal.
+* push image to registry `docker push [YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]`
+
+#### install application and configure security configmap
+
+##### Create secrets for application
+Create secrets from kubectl command line, secret name and secret keys correlates to  helm chrt for our app:
+
+`kubectl create secret generic myrelease-mynetcoreapp --from-literal=mytestenvironment="My supersecret string"`
+
+##### install application with helm
+Run following command to install application
+
+`helm upgrade --install --wait myrelease mynetcoreapp --set-string imagePullSecrets='[YOUR REGISTRY NAME].azurecr.io',image.repository='[YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]',image.tag='[BUILDNUMBER]',track=stable,branchName='master',branchSubdomain='',ingress.host='[APP DNS NAME]' --namespace='default'`
+
+Now we can test our api on URL:
+
+http://[APP DNS NAME]/myapi1/values/1
+
+Clean-up deployment after tests..
+
+`helm del --purge myrelease` 
+
+
+
 
 
  
