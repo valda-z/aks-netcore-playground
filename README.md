@@ -141,14 +141,14 @@ public string Probe()
 * login to container registry `docker login [YOUR REGISTRY NAME].azurecr.io -u xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -p myPassword` - credentials for registry are visible in Azure Portal.
 * push image to registry `docker push [YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]`
 
-#### install application and configure security configmap
+### #3 install application and configure security configmap
 
-##### Create secrets for application
+#### Create secrets for application
 Create secrets from kubectl command line, secret name and secret keys correlates to  helm chrt for our app:
 
 `kubectl create secret generic myrelease-mynetcoreapp --from-literal=mytestenvironment="My supersecret string"`
 
-##### install application with helm
+#### install application with helm
 Run following command to install application
 
 `helm upgrade --install --wait myrelease mynetcoreapp --set-string imagePullSecrets='[YOUR REGISTRY NAME].azurecr.io',image.repository='[YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]',image.tag='[BUILDNUMBER]',track=stable,branchName='master',branchSubdomain='',ingress.host='[APP DNS NAME]' --namespace='default'`
@@ -161,6 +161,34 @@ Clean-up deployment after tests..
 
 `helm del --purge myrelease` 
 
+### #4 VSTS CI/CD pipeline
+
+https://pascalnaber.wordpress.com/2017/09/21/automate-the-deployment-of-net-core-2-docker-containers-to-kubernetes-with-azure-container-service-and-azure-container-registry-using-vsts/
+
+#### Create CI pipeline
+
+* Create new project in VSTS and connect there your source code
+* push sources to VSTS git
+* Create New Build in VSTS 
+ * New build type "APS.NET Core"
+ * Define Variable `DOCKER_REGISTRY` - value is empty (to avoid warnings and errors) 
+ * ![img](img/ci01.jpg "")
+ * Go to project properties (Process) and select Agent type "Hosted Linux Preview"
+ * ![img](img/ci02.jpg "")
+ * Remove the Restore task because .NET Core 2 restores during the build already
+ * Add "Net Core Tools Installer", set version 2.0.0
+ * ![img](img/ci03.jpg "")
+ * Select the Publish task, by default the output is configured as follows: –output $(build.artifactstagingdirectory). Our Dockerfile expects the sources by default on “obj/Docker/publish”, change the output to: `.\obj\Docker\publish`
+ * ![img](img/ci04.jpg "")
+ * Add task type "Docker Compose" and select "Action" to "Build service images", select your subscription and Azure Container Registry, finally set "Additional Image Tags" to `$(Build.BuildId)`
+ * ![img](img/ci05.jpg "")
+ * Add task type "Docker Compose" and select "Action" to "Push service images", select your subscription and Azure Container Registry, finally set "Additional Image Tags" to `$(Build.BuildId)`
+ * ![img](img/ci06.jpg "")
+ * 
+
+
+ 
+ 
 
 
 
