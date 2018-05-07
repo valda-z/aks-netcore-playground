@@ -2,6 +2,15 @@
 
 This demo contains helm templates and description of k8s use-cases which can be used with .Net Core dockerized services (linux based containers).
 
+## Prerequisites
+* you have to be familiar with VSTS and Visual Studio 2017
+* Windows 10 
+ * Visual Studio 2017
+ * installed "Bash on Ubuntu on Windows"
+ * installed docker for windows
+ * installed Azure CLI in Bash on Ubuntu - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest 
+ * installed helm in Bash on Ubuntu on Windows" - https://github.com/kubernetes/helm/blob/master/docs/install.md 
+
 ## Demonstrated scenario:
 * automatically create infrastructure environment AKS (kubernetes), ACR.
 * deploy nginx-ingerss controller to kubernetes cluster for future use
@@ -149,7 +158,9 @@ Create secrets from kubectl command line, secret name and secret keys correlates
 `kubectl create secret generic myrelease-mynetcoreapp --from-literal=mytestenvironment="My supersecret string"`
 
 #### install application with helm
-Run following command to install application
+Download helm chart directory from https://github.com/valda-z/aks-netcore-playground.
+
+Run following command to install application from directory where chart directory is located.
 
 `helm upgrade --install --wait myrelease mynetcoreapp --set-string imagePullSecrets='[YOUR REGISTRY NAME].azurecr.io',image.repository='[YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]',image.tag='[BUILDNUMBER]',track=stable,branchName='master',branchSubdomain='',ingress.host='[APP DNS NAME]' --namespace='default'`
 
@@ -162,8 +173,6 @@ Clean-up deployment after tests..
 `helm del --purge myrelease` 
 
 ### #4 VSTS CI/CD pipeline
-
-https://pascalnaber.wordpress.com/2017/09/21/automate-the-deployment-of-net-core-2-docker-containers-to-kubernetes-with-azure-container-service-and-azure-container-registry-using-vsts/
 
 #### Create CI pipeline
 
@@ -184,7 +193,52 @@ https://pascalnaber.wordpress.com/2017/09/21/automate-the-deployment-of-net-core
  * ![img](img/ci05.jpg "")
  * Add task type "Docker Compose" and select "Action" to "Push service images", select your subscription and Azure Container Registry, finally set "Additional Image Tags" to `$(Build.BuildId)`
  * ![img](img/ci06.jpg "")
- * 
+
+Now you can run build and check if docker image appears in Azure Container Registry.
+
+#### Create CD pipeline
+
+##### update CI pipeline and project
+
+Download helm chart directory from https://github.com/valda-z/aks-netcore-playground and copy it to your project. Commit and push changes ...
+
+![img](img/cd01.jpg "")
+
+* Open build definition in VSTS
+* Go to "Publis Artifacts and set "Path to publish" to location with charts in your project
+* Set "Artifact name to "charts"
+* ![img](img/cd02.jpg "")
+
+##### New CD pipeline
+
+* Create new Release in VSTS, you can use Empty process ..
+* Define "Artifacts" pointing to your build process
+ * change "Source alias" to `helm` (name of directory where we can see charts)
+ * ![img](img/cd00.jpg "")
+* Enable continuous deployment trigger
+* In Environments define one Environment named "Test"
+* Go to Task definition for Environment Test
+ *  change Agent to "Hosted Linux preview"
+ * ![img](img/cd03.jpg "")
+* Include two new tasks for helm (Helm tool installer, Package and deploy Helm charts)
+*  ![img](img/cd04.jpg "")
+* Configure Helm tool installer - change helm version to 2.9.0
+* Configure Package and deploy Helm charts
+ * Configure Azure connection to your kubernetes cluster
+ * Set "Namespace" to `default'
+ * ![img](img/cd05.jpg "")
+ * Set "Command" to `upgrade`
+ * Set "Chart Type" to "Filename and select path to `charts` directory
+ * Set "Release name" - `myrelease
+ * Set field "Set Values" to `imagePullSecrets=[YOUR REISTRY NAME].azurecr.io,image.repository=[Your REGISTRY NAME].azurecr.io/webapplication2,image.tag=$(Build.BuildId),track=stable,branchName=master,ingress.host=[APP DNS NAME]` 
+ * ![img](img/cd06.jpg "") 
+
+Now you can check in kubernetes control plane that new version was deployed, also you can try to change something in your code to verify that whole CI/CD pipeline works.
+
+http://[APP DNS NAME]/myapi1/values/1
+
+
+
 
 
  
