@@ -178,7 +178,7 @@ retry_until_successful kubectl create secret docker-registry ${REGISTRY_SERVER} 
 
 echo "  .. installing http-application-routing"
 AKSID=$(az aks show --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --query [id] --output tsv)
-az group deployment create --resource-group ${RESOURCEGROUP} --parameters "{\"aksResourceId\": {\"value\": \"${AKSID}\"},\"aksResourceLocation\": {\"value\": \"${LOCATION}\"}}" --template-uri https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/akshttpapprouting.json
+az group deployment create --resource-group ${RESOURCEGROUP} --parameters "{\"aksResourceId\": {\"value\": \"${AKSID}\"},\"aksResourceLocation\": {\"value\": \"${LOCATION}\"}}" --template-uri https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/akshttpapprouting.json  > /dev/null
 
 #############################################################
 # end
