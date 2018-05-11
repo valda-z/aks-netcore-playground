@@ -97,7 +97,7 @@ az group create --name ${RESOURCEGROUP} --location ${LOCATION} > /dev/null
 
 ### create kubernetes cluster
 echo "  .. create AKS with kubernetes"
-az aks create --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --location ${LOCATION} --node-count 2 --kubernetes-version 1.8.1 --admin-username ${KUBERNETESADMINUSER} --ssh-key-value ${SSHPUBKEY} > /dev/null
+az aks create --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --location ${LOCATION} --node-count 3 --kubernetes-version 1.9.6 --admin-username ${KUBERNETESADMINUSER} --ssh-key-value ${SSHPUBKEY} > /dev/null
 sleep 10
 
 #############################################################
@@ -171,6 +171,14 @@ APPFQDN=$(az network public-ip update --resource-group ${APPPUBIPRG} --name ${AP
 
 echo "  .. installing ACR credentials to kubernetes"
 retry_until_successful kubectl create secret docker-registry ${REGISTRY_SERVER} --docker-server=${REGISTRY_SERVER} --docker-username=${REGISTRY_USER_NAME} --docker-password="${REGISTRY_PASSWORD}" --docker-email=test@test.it  > /dev/null
+
+#############################################################
+# install http-application-routing
+#############################################################
+
+echo "  .. installing http-application-routing"
+AKSID=$(az aks show --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --query [id] --output tsv)
+az group deployment create --resource-group ${RESOURCEGROUP} --parameters "{\"aksResourceId\": {\"value\": \"${AKSID}\"},\"aksResourceLocation\": {\"value\": \"${LOCATION}\"}}" --template-uri https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/akshttpapprouting.json
 
 #############################################################
 # end
