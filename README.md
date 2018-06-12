@@ -164,6 +164,9 @@ Run following command to install application from directory where chart director
 
 `helm upgrade --install --wait myrelease mynetcoreapp --set-string imagePullSecrets='[YOUR REGISTRY NAME].azurecr.io',image.repository='[YOUR REGISTRY NAME].azurecr.io/[YOUR APP IMAGE]',image.tag='[BUILDNUMBER]',track=stable,branchName='master',branchSubdomain='',ingress.host='[APP DNS NAME]' --namespace='default'`
 
+Or on Windows CMD (to use external LoadBalancer):
+`helm upgrade --install --wait myrelease mynetcoreapp --set-string imagePullSecrets="######.azurecr.io",image.repository="######.azurecr.io/#######",image.tag="######",track=stable,branchName="master",branchSubdomain="",service.type=LoadBalancer,ingress.enabled=false --namespace=default`
+
 Now we can test our api on URL:
 
 http://[APP DNS NAME]/myapi1/values/1
