@@ -158,7 +158,7 @@ echo "  .. helm - installing charts"
 
 echo "      .. helming nginx-ingress"
 ### install nginx ingress to kubernetes cluster
-retry_until_successful helm install --name default-ingress stable/nginx-ingress >/dev/null
+retry_until_successful helm install --name default-ingress stable/nginx-ingress --set rbac.create=false  >/dev/null
 
 #############################################################
 # nginx-ingress installation / configuration
