@@ -127,16 +127,6 @@ echo "          .. patching tiller-deploy"
 retry_until_successful kubectl -n kube-system patch deployment tiller-deploy -p '{"spec": {"template": {"spec": {"automountServiceAccountToken": true}}}}'
 retry_until_successful helm version
 
-#############################################################
-# helm install services
-#############################################################
-
-echo "  .. helm - installing charts"
-
-echo "      .. helming nginx-ingress"
-### install nginx ingress to kubernetes cluster
-retry_until_successful helm install --name default-ingress stable/nginx-ingress >/dev/null
-
 ### create ACR
 echo "  .. create ACR"
 az acr create -n ${ACRNAME} -g ${RESOURCEGROUP} --location ${LOCATION} --admin-enabled true --sku Basic > /dev/null
@@ -160,6 +150,15 @@ echo "  .. installing http-application-routing"
 AKSID=$(az aks show --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --query [id] --output tsv)
 az group deployment create --resource-group ${RESOURCEGROUP} --parameters "{\"aksResourceId\": {\"value\": \"${AKSID}\"},\"aksResourceLocation\": {\"value\": \"${LOCATION}\"}}" --template-uri https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/akshttpapprouting.json  > /dev/null
 
+#############################################################
+# helm install services
+#############################################################
+
+echo "  .. helm - installing charts"
+
+echo "      .. helming nginx-ingress"
+### install nginx ingress to kubernetes cluster
+retry_until_successful helm install --name default-ingress stable/nginx-ingress >/dev/null
 
 #############################################################
 # nginx-ingress installation / configuration
