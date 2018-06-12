@@ -146,6 +146,22 @@ CREDENTIALS_ID=${REGISTRY_SERVER}
 CREDENTIALS_DESC=${REGISTRY_SERVER}
 
 #############################################################
+# kubernetes ACR credentials
+#############################################################
+
+echo "  .. installing ACR credentials to kubernetes"
+retry_until_successful kubectl create secret docker-registry ${REGISTRY_SERVER} --docker-server=${REGISTRY_SERVER} --docker-username=${REGISTRY_USER_NAME} --docker-password="${REGISTRY_PASSWORD}" --docker-email=test@test.it  > /dev/null
+
+#############################################################
+# install http-application-routing
+#############################################################
+
+echo "  .. installing http-application-routing"
+AKSID=$(az aks show --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --query [id] --output tsv)
+az group deployment create --resource-group ${RESOURCEGROUP} --parameters "{\"aksResourceId\": {\"value\": \"${AKSID}\"},\"aksResourceLocation\": {\"value\": \"${LOCATION}\"}}" --template-uri https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/akshttpapprouting.json  > /dev/null
+
+
+#############################################################
 # nginx-ingress installation / configuration
 #############################################################
 
@@ -164,21 +180,6 @@ echo ""
 APPPUBIPRG=$(az network public-ip list -o  tsv | grep "${NGINX_IP}" | awk '{print $12}')
 APPPUBIPNAME=$(az network public-ip list -o  tsv | grep "${NGINX_IP}" | awk '{print $8}')
 APPFQDN=$(az network public-ip update --resource-group ${APPPUBIPRG} --name ${APPPUBIPNAME} --dns-name ${APPDNSNAME} --query [dnsSettings.fqdn] -o tsv)
-
-#############################################################
-# kubernetes ACR credentials
-#############################################################
-
-echo "  .. installing ACR credentials to kubernetes"
-retry_until_successful kubectl create secret docker-registry ${REGISTRY_SERVER} --docker-server=${REGISTRY_SERVER} --docker-username=${REGISTRY_USER_NAME} --docker-password="${REGISTRY_PASSWORD}" --docker-email=test@test.it  > /dev/null
-
-#############################################################
-# install http-application-routing
-#############################################################
-
-echo "  .. installing http-application-routing"
-AKSID=$(az aks show --resource-group ${RESOURCEGROUP} --name ${KUBERNETESNAME} --query [id] --output tsv)
-az group deployment create --resource-group ${RESOURCEGROUP} --parameters "{\"aksResourceId\": {\"value\": \"${AKSID}\"},\"aksResourceLocation\": {\"value\": \"${LOCATION}\"}}" --template-uri https://raw.githubusercontent.com/valda-z/aks-netcore-playground/master/akshttpapprouting.json  > /dev/null
 
 #############################################################
 # end
